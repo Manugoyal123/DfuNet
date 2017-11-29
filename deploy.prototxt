@@ -1,0 +1,755 @@
+name: "dfunet"
+layer {
+  name: "data"
+  type: "Input"
+  top: "data"
+  input_param { shape: { dim: 10 dim: 3 dim: 227 dim: 227 } }
+}
+
+######### Start of preConv ############
+layer {
+  name: "preConv1/7x7"
+  type: "Convolution"
+  bottom: "data"
+  top: "preConv1/7x7"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 64
+    pad: 3
+    kernel_size: 7
+    stride: 2
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "preConv1/relu_7x7"
+  type: "ReLU"
+  bottom: "preConv1/7x7"
+  top: "preConv1/7x7"
+}
+layer {
+  name: "prePool1/3x3"
+  type: "Pooling"
+  bottom: "preConv1/7x7"
+  top: "prePool1/3x3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "preNorm1"
+  type: "LRN"
+  bottom: "prePool1/3x3"
+  top: "preNorm1"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+layer {
+  name: "preConv2/3x3_reduce"
+  type: "Convolution"
+  bottom: "preNorm1"
+  top: "preConv2/3x3_reduce"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 64
+    kernel_size: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "preConv2/relu_3x3_reduce"
+  type: "ReLU"
+  bottom: "preConv2/3x3_reduce"
+  top: "preConv2/3x3_reduce"
+}
+layer {
+  name: "preConv2/3x3"
+  type: "Convolution"
+  bottom: "preConv2/3x3_reduce"
+  top: "preConv2/3x3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 192
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+      std: 0.03
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "preConv2/relu_3x3"
+  type: "ReLU"
+  bottom: "preConv2/3x3"
+  top: "preConv2/3x3"
+}
+layer {
+  name: "preNorm2"
+  type: "LRN"
+  bottom: "preConv2/3x3"
+  top: "preNorm2"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+layer {
+  name: "prePool2/3x3"
+  type: "Pooling"
+  bottom: "preNorm2"
+  top: "prePool2/3x3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+######### End of preConv ############
+######### Start of Conv1 ############
+
+layer {
+  name: "conv1a/5x5"
+  type: "Convolution"
+  bottom: "prePool2/3x3"
+  top: "conv1a/5x5"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 5
+    stride: 1
+    pad: 2
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv1a/relu_5x5"
+  type: "ReLU"
+  bottom: "conv1a/5x5"
+  top: "conv1a/5x5"
+}
+
+layer {
+  name: "conv1b/3x3"
+  type: "Convolution"
+  bottom: "prePool2/3x3"
+  top: "conv1b/3x3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 3
+    stride: 1
+    pad: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv1b/relu_3x3"
+  type: "ReLU"
+  bottom: "conv1b/3x3"
+  top: "conv1b/3x3"
+}
+
+layer {
+  name: "conv1c/1x1"
+  type: "Convolution"
+  bottom: "prePool2/3x3"
+  top: "conv1c/1x1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv1c/relu_1x1"
+  type: "ReLU"
+  bottom: "conv1c/1x1"
+  top: "conv1c/1x1"
+}
+
+######### End of Conv1 ############
+layer {
+  name: "conv1/output"
+  type: "Concat"
+  bottom: "conv1a/5x5"
+  bottom: "conv1b/3x3"
+  bottom: "conv1c/1x1"
+  top: "conv1/output"
+}
+layer {
+  name: "pool1/3x3"
+  type: "Pooling"
+  bottom: "conv1/output"
+  top: "pool1/3x3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "norm1"
+  type: "LRN"
+  bottom: "pool1/3x3"
+  top: "norm1"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+######### Start of Conv2 ############
+
+layer {
+  name: "conv2a/5x5"
+  type: "Convolution"
+  bottom: "norm1"
+  top: "conv2a/5x5"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 5
+    stride: 1
+    pad: 2
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv2a/relu_5x5"
+  type: "ReLU"
+  bottom: "conv2a/5x5"
+  top: "conv2a/5x5"
+}
+
+layer {
+  name: "conv2b/3x3"
+  type: "Convolution"
+  bottom: "norm1"
+  top: "conv2b/3x3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 3
+    stride: 1
+    pad: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv2b/relu_3x3"
+  type: "ReLU"
+  bottom: "conv2b/3x3"
+  top: "conv2b/3x3"
+}
+
+layer {
+  name: "conv2c/1x1"
+  type: "Convolution"
+  bottom: "norm1"
+  top: "conv2c/1x1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv2c/relu_1x1"
+  type: "ReLU"
+  bottom: "conv2c/1x1"
+  top: "conv2c/1x1"
+}
+
+######### End of Conv2 ############
+
+layer {
+  name: "conv2/output"
+  type: "Concat"
+  bottom: "conv2a/5x5"
+  bottom: "conv2b/3x3"
+  bottom: "conv2c/1x1"
+  top: "conv2/output"
+}
+#layer {
+  #name: "pool2/3x3"
+  #type: "Pooling"
+  #bottom: "conv2/output"
+  #top: "pool2/3x3"
+  #pooling_param {
+    #pool: MAX
+   # kernel_size: 3
+  #  stride: 2
+ # }
+#}
+layer {
+  name: "norm2"
+  type: "LRN"
+  bottom: "conv2/output"
+  top: "norm2"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+######### Start of Conv3 ############
+layer {
+  name: "conv3a/5x5"
+  type: "Convolution"
+  bottom: "norm2"
+  top: "conv3a/5x5"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    kernel_size: 5
+    stride: 1
+    pad: 2
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv3a/relu_5x5"
+  type: "ReLU"
+  bottom: "conv3a/5x5"
+  top: "conv3a/5x5"
+}
+
+layer {
+  name: "conv3b/3x3"
+  type: "Convolution"
+  bottom: "norm2"
+  top: "conv3b/3x3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    kernel_size: 3
+    stride: 1
+    pad: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv3b/relu_3x3"
+  type: "ReLU"
+  bottom: "conv3b/3x3"
+  top: "conv3b/3x3"
+}
+
+layer {
+  name: "conv3c/1x1"
+  type: "Convolution"
+  bottom: "norm2"
+  top: "conv3c/1x1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    kernel_size: 1
+    stride: 1
+    pad: 0
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv3c/relu_1x1"
+  type: "ReLU"
+  bottom: "conv3c/1x1"
+  top: "conv3c/1x1"
+}
+
+######### End of Conv3 ############
+
+layer {
+  name: "conv3/output"
+  type: "Concat"
+  bottom: "conv3a/5x5"
+  bottom: "conv3b/3x3"
+  bottom: "conv3c/1x1"
+  top: "conv3/output"
+}
+layer {
+  name: "pool3/3x3"
+  type: "Pooling"
+  bottom: "conv3/output"
+  top: "pool3/3x3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "norm3"
+  type: "LRN"
+  bottom: "pool3/3x3"
+  top: "norm3"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+
+######### Start of Conv4 ############
+layer {
+  name: "conv4a/5x5"
+  type: "Convolution"
+  bottom: "norm3"
+  top: "conv4a/5x5"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    kernel_size: 5
+    stride: 1
+    pad: 2
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv4a/relu_5x5"
+  type: "ReLU"
+  bottom: "conv4a/5x5"
+  top: "conv4a/5x5"
+}
+
+layer {
+  name: "conv4b/3x3"
+  type: "Convolution"
+  bottom: "norm3"
+  top: "conv4b/3x3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    kernel_size: 3
+    stride: 1
+    pad: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv4b/relu_3x3"
+  type: "ReLU"
+  bottom: "conv4b/3x3"
+  top: "conv4b/3x3"
+}
+
+layer {
+  name: "conv4c/1x1"
+  type: "Convolution"
+  bottom: "norm3"
+  top: "conv4c/1x1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 512
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layer {
+  name: "conv4c/relu_1x1"
+  type: "ReLU"
+  bottom: "conv4c/1x1"
+  top: "conv4c/1x1"
+}
+
+######### End of Conv4 ############
+layer {
+  name: "conv4/output"
+  type: "Concat"
+  bottom: "conv4a/5x5"
+  bottom: "conv4b/3x3"
+  bottom: "conv4c/1x1"
+  top: "conv4/output"
+}
+
+layer {
+  name: "pool4"
+  type: "Pooling"
+  bottom: "conv4/output"
+  top: "pool4"
+  pooling_param {
+    pool: MAX
+    kernel_size: 7
+    stride: 1
+  }
+}
+layer {
+  name: "FC1"
+  type: "InnerProduct"
+  bottom: "pool4"
+  top: "FC1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    # Since num_output is unset, DIGITS will automatically set it to the
+    #   number of classes in your dataset.
+    # Uncomment this line to set it explicitly:
+    num_output: 1000
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "FC3"
+  type: "InnerProduct"
+  bottom: "FC1"
+  top: "FC3"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    # Since num_output is unset, DIGITS will automatically set it to the
+    #   number of classes in your dataset.
+    # Uncomment this line to set it explicitly:
+    num_output: 1000
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "prob"
+  type: "Softmax"
+  bottom: "FC3"
+  top: "prob"
+}
